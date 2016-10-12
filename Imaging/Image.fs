@@ -14,7 +14,8 @@ module OCR =
 
     let exportAsJpegImage(dic_image:PdfDictionary)(count:int byref) =
         use ms = new MemoryStream(dic_image.Stream.Value)
-        fileStream fs = new FileStream(String.Format("Image{0}.jpeg", count++), FileMode.Create, FileAccess.Write);
+        count <- count+1 
+        let fs:FileStream  = new FileStream((sprintf "Image%d.jpeg" count) , FileMode.Create, FileAccess.Write) 
         Image.FromStream(ms) 
 
     let exportAsPngImage(dic_image:PdfDictionary)(count:int byref) =
@@ -48,7 +49,7 @@ module OCR =
           // is the case here.
           let xObject: PdfDictionary  = reference.Value:?>PdfDictionary 
           // Is external object an image?
-          if (xObject != null && xObject.Elements.GetString("/Subtype") = "/Image") then
+          if (xObject <> null && xObject.Elements.GetString("/Subtype") = "/Image") then
              exportImage xObject &imageCount 
              //The & operator is a way to create a value (a pointer) that can be passed as 
              //an argument to a function/method expecting a byref type. 
