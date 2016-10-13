@@ -6,12 +6,13 @@ open System.Drawing
     
 [<EntryPoint>]
 let main argv = 
-    let printImg f:seq<Image> =
-        let btmps = f |> Seq.map (fun (z:Image) -> new Bitmap(z))|> seq<Bitmap>
-        btmps |> Seq.iter(fun p-> p.Save(""))
+    let imgs = OCR.extractListImages @"C:\DEV\Imaging\test_imaging\1.pdf"
+    let mutable count:int = 0
+    for f in imgs do
+         let btmps = f |> Seq.map (fun (z:Image) -> if isNull(z) then null else new Bitmap(z))|> seq<Bitmap>
+         for b in btmps do
+          count <- count+1
+          if isNull(b) then printfn "" else b.Save((sprintf @"C:\DEV\Imaging\test_imaging\%d.jpg" count)) |>ignore 
 
-    let imgs = OCR.extractImages "C:\DEV\Imaging\test_imaging\1.pdf"
-    imgs
-       |> Seq.iter (fun i -> printImg i)
     printfn "%A" argv
     0 // return an integer exit code
