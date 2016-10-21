@@ -32,6 +32,7 @@ module PDF =
      open System.Drawing.Imaging
      open System.Text
      open System.Linq
+     open System.IO
 
      let extractExt(image:Image):ImagesFormat = 
         let bytes = IMG.imageToByteArray image
@@ -61,12 +62,17 @@ module PDF =
             ImagesFormat.Jpeg 
         else
             ImagesFormat.Unknown 
-      
+     
+     let getNomeFile(pdf_file_path:string) =
+         Path.GetFileNameWithoutExtension pdf_file_path
+
      let extractImages (pdf_file_path:string) =
          let doc:PdfDocument  = new PdfDocument() 
          doc.LoadFromFile(pdf_file_path)
          let pages = doc.Pages
+         let mutable count = 0
          seq { for page:PdfPageBase in pages do
                  let imgs =  page.ExtractImages()
+                 count<-count+1
                  for img:Image in imgs do
-                    yield (img, extractExt img)}
+                    yield img, extractExt img, count}
