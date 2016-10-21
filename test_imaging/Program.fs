@@ -8,8 +8,9 @@ open System.Drawing
 let main argv = 
         let imgs = PDF.extractImages @"C:\DEV\Imaging\test_imaging\1.pdf"
         let mutable count:int = 0
-        for i:Image in imgs do
+        for i:Image*ImagesFormat in imgs do
             count<-count+1
-            i.Save((sprintf @"C:\DEV\Imaging\test_imaging\%d.jpg" count)) |>ignore 
+            printfn "%s" ((snd i).ToString())
+            (fst i).Save(sprintf @"C:\DEV\Imaging\test_imaging\%d %s" count ((snd i).ToString())) |>ignore 
         printfn "%A" argv
         0 // return an integer exit code
