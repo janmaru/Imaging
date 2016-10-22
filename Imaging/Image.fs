@@ -27,16 +27,15 @@ module IMG =
          image
  
 module PDF = 
-     open Spire.Pdf
-     open System.Drawing
-     open System.Drawing.Imaging
-     open System.Text
-     open System.Linq
-     open System.IO
+    open Spire.Pdf
+    open System.Drawing
+    open System.Drawing.Imaging
+    open System.Text
+    open System.Linq
+    open System.IO
 
-     let extractExt(image:Image):ImagesFormat = 
+    let extractExt(image:Image):ImagesFormat = 
         let bytes = IMG.imageToByteArray image
-
         // see http://www.mikekunz.com/image_file_header.html  
         let bmp  = Encoding.ASCII.GetBytes("BM")      // BMP
         let gif  = Encoding.ASCII.GetBytes("GIF")    // GIF
@@ -63,18 +62,37 @@ module PDF =
         else
             ImagesFormat.Unknown 
      
-     let getNomeFile(pdf_file_path:string) =
-         Path.GetFileNameWithoutExtension pdf_file_path
+    let getNomeFile(pdf_file_path:string) =
+        Path.GetFileNameWithoutExtension pdf_file_path
  
 
-     let extractImages (pdf_file_path:string) =
-         let doc:PdfDocument  = new PdfDocument() 
-         doc.LoadFromFile(pdf_file_path)
-         let pages = doc.Pages
-         let mutable count = 0
-         let file_name = getNomeFile pdf_file_path
-         seq { for page:PdfPageBase in pages do
-                 let imgs = page.ExtractImages()
-                 count<-count+1
-                 for img:Image in imgs do
-                    yield img, file_name, extractExt img, count}
+    let extractImages (pdf_file_path:string) =
+        let doc:PdfDocument  = new PdfDocument() 
+        doc.LoadFromFile(pdf_file_path)
+        let pages = doc.Pages
+        let mutable count = 0
+        let file_name = getNomeFile pdf_file_path
+        seq { for page:PdfPageBase in pages do
+                let imgs = page.ExtractImages()
+                count<-count+1
+                for img:Image in imgs do
+                yield img, file_name, extractExt img, count}
+
+    let scriviImgsFromPdfsInDirectory dir_path dir_output_images = 
+        let dir = new DirectoryInfo(dir_path)
+        let files = dir.GetFiles("*.pdf", SearchOption.AllDirectories)
+        let fullNames = files.Select(fun file -> file.FullName).ToArray();
+        for pdf_file_path in fullNames do
+        let imgs = extractImages pdf_file_path
+        for i:Image*string*ImagesFormat*int in imgs do
+            let img,filename,ext,page = i
+            let id = Guid.NewGuid()
+            img.Save(sprintf @"%s%s_%s_%s%s" dir_output_images filename (page.ToString()) (id.ToString()) (ext.ToString())) |>ignore 
+
+    let scriviImgsFromPdf pdf_file_path dir_output_images = 
+        let imgs = extractImages pdf_file_path
+        for i:Image*string*ImagesFormat*int in imgs do
+            let img,filename,ext,page = i
+            let id = Guid.NewGuid()
+            img.Save(sprintf @"%s%s_%s_%s%s" dir_output_images filename (page.ToString()) (id.ToString()) (ext.ToString())) |>ignore 
+        

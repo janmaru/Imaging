@@ -60,6 +60,9 @@
     <None Include="1.pdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="eccellente_bianco_nero.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -70,6 +73,8 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Numerics" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Imaging\Imaging.fsproj">
       <Name>Imaging</Name>
       <Project>{203b3e34-dc63-448f-a3e9-e0ce2094370a}</Project>
