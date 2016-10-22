@@ -1,4 +1,4 @@
-﻿namespace Estrai_immagini_da_pdf.AssemblyInfo
+﻿namespace ei.AssemblyInfo
 
 open System.Reflection
 open System.Runtime.CompilerServices
@@ -7,11 +7,11 @@ open System.Runtime.InteropServices
 // Le informazioni generali relative a un assembly sono controllate dal seguente 
 // set di attributi. Modificare i valori di questi attributi per modificare le informazioni
 // associate a un assembly.
-[<assembly: AssemblyTitle("Estrai_immagini_da_pdf")>]
+[<assembly: AssemblyTitle("ei")>]
 [<assembly: AssemblyDescription("")>]
 [<assembly: AssemblyConfiguration("")>]
 [<assembly: AssemblyCompany("Hewlett-Packard")>]
-[<assembly: AssemblyProduct("Estrai_immagini_da_pdf")>]
+[<assembly: AssemblyProduct("ei")>]
 [<assembly: AssemblyCopyright("Copyright © Hewlett-Packard 2016")>]
 [<assembly: AssemblyTrademark("")>]
 [<assembly: AssemblyCulture("")>]
@@ -22,7 +22,7 @@ open System.Runtime.InteropServices
 [<assembly: ComVisible(false)>]
 
 // Se il progetto viene esposto a COM, il seguente GUID verrà utilizzato come ID della libreria dei tipi
-[<assembly: Guid("d9e6bb73-4994-4732-be98-00c81100ce3f")>]
+[<assembly: Guid("54355c65-7b18-4f2c-9b44-771199c41846")>]
 
 // Le informazioni sulla versione di un assembly sono costituite dai quattro valori seguenti:
 // 

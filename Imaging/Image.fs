@@ -65,14 +65,16 @@ module PDF =
      
      let getNomeFile(pdf_file_path:string) =
          Path.GetFileNameWithoutExtension pdf_file_path
+ 
 
      let extractImages (pdf_file_path:string) =
          let doc:PdfDocument  = new PdfDocument() 
          doc.LoadFromFile(pdf_file_path)
          let pages = doc.Pages
          let mutable count = 0
+         let file_name = getNomeFile pdf_file_path
          seq { for page:PdfPageBase in pages do
-                 let imgs =  page.ExtractImages()
+                 let imgs = page.ExtractImages()
                  count<-count+1
                  for img:Image in imgs do
-                    yield img, extractExt img, count}
+                    yield img, file_name, extractExt img, count}
