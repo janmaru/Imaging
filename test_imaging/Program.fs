@@ -7,8 +7,8 @@ open System
     
 [<EntryPoint>]
 let main argv = 
-        PDF.scriviImgsFromPdf @"C:\DEV\Imaging\test_imaging\eccellente_bianco_nero.pdf" @"D:\temp\"
-
+//        PDF.scriviImgsFromPdf @"C:\DEV\Imaging\test_imaging\eccellente_bianco_nero.pdf" @"D:\temp\"
+        PDF.scriviImgsFromPdfsInDirectory @"C:\DEV\Imaging\test_imaging\" @"D:\temp\" 
 //        let pdf_file_path =  @"C:\DEV\Imaging\test_imaging\1.pdf"
 //        let fileName = PDF.getNomeFile pdf_file_path
 //        let imgs = PDF.extractImages pdf_file_path

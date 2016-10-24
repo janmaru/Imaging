@@ -3,14 +3,10 @@
                 
 [<EntryPoint>]
 let main argv = 
-        let context =  argv.[0]
-        let pdf_file_path =  argv.[1]
-        let dir_path =  argv.[2]
-        let dir_output_images = argv.[3]
+        let dir_or_pdf_path =  argv.[0]
+        let dir_output_images = argv.[1]
 
-        match context with
-        | "dir" ->  PDF.scriviImgsFromPdfsInDirectory dir_path dir_output_images
-        |_-> PDF.scriviImgsFromPdf pdf_file_path dir_output_images
+        PDF.scriviImgsFromPdfsInDirectory dir_or_pdf_path dir_output_images
 
         printfn "%A" argv
         0 // return an integer exit code
