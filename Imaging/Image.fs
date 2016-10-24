@@ -77,40 +77,15 @@ module PDF =
                 for img:Image in imgs do
                 yield img, file_name, extractExt img, count}
 
-//    let extractImages (pdf_file_path:string) =
-//        let doc:PdfDocument  = new PdfDocument() 
-//        doc.LoadFromFile(pdf_file_path)
-//        let pages = doc.Pages
-//        let file_name = getNomeFile pdf_file_path
-//
-//        let getImagesFromPage (page:PdfPageBase) = 
-//           try
-//              Some(page.ExtractImages()) // let imgs:Image[] = page.ExtractImages()
-//           with
-//             | ex -> None
-//
-//        let getSingleImageFromImages (imgs:Image[])= 
-//              let mutable count = 0
-//              count<-count+1
-//              seq {for img:Image in imgs do
-//                     yield img, file_name, extractExt img, count }
-//
-//        let seimgs:Image*string*ImagesFormat*int 
-//        for page:PdfPageBase in pages do
-//            let imgs = getImagesFromPage page
-//            let simgs = match imgs with
-//                            | Some img -> getSingleImageFromImages imgs
-//                            | None -> Seq.empty 
-//            simgs
-// 
+    let createFileName dir_output_images filename page id ext = sprintf @"%s%s_%s_%s%s" dir_output_images filename (page.ToString()) (id.ToString()) (ext.ToString())
 
     let scriviImgsFromPdf pdf_file_path dir_output_images = 
         let imgs = extractImages pdf_file_path
         for i:Image*string*ImagesFormat*int in imgs do
             let img,filename,ext,page = i
             let id = Guid.NewGuid()
-            img.Save(sprintf @"%s%s_%s_%s%s" dir_output_images filename (page.ToString()) (id.ToString()) (ext.ToString())) |>ignore 
-        
+            img.Save(createFileName dir_output_images filename page id ext) |>ignore 
+            
     let scriviImgsFromPdfsInDirectory dir_or_file_path dir_output_images = 
         if File.Exists(dir_or_file_path) then
            scriviImgsFromPdf dir_or_file_path dir_output_images
