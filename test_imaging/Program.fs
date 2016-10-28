@@ -7,15 +7,11 @@ open System
     
 [<EntryPoint>]
 let main argv = 
-//        PDF.scriviImgsFromPdf @"C:\DEV\Imaging\test_imaging\eccellente_bianco_nero.pdf" @"D:\temp\"
+    try
         PDF.scriviImgsFromPdfsInDirectory @"C:\DEV\Imaging\test_imaging\" @"D:\temp\" 
-//        let pdf_file_path =  @"C:\DEV\Imaging\test_imaging\1.pdf"
-//        let fileName = PDF.getNomeFile pdf_file_path
-//        let imgs = PDF.extractImages pdf_file_path
-//        for i:Image*string*ImagesFormat*int  in imgs do
-//            let img,filename,ext,page = i
-//            let id = Guid.NewGuid()
-//            printfn "%s" (ext.ToString())
-//            img.Save(sprintf @"C:\DEV\Imaging\test_imaging\%s_%s_%s%s" fileName (page.ToString()) (id.ToString()) (ext.ToString())) |>ignore 
-        printfn "%A" argv
-        0 // return an integer exit code
+    with 
+    | ex -> printfn "%s" (ex.Message.ToString())
+ 
+    printfn "%A" argv
+    Console.Read |> ignore
+    0 // return an integer exit code

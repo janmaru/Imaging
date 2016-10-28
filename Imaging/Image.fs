@@ -16,7 +16,9 @@ module IMG =
      open System.Drawing
      open System.IO
      open System.Runtime.Serialization.Formatters.Binary
+     open System.Drawing.Imaging
  
+//#region general methods
      let imageToByteArray(image:Image) =
         let ic = new ImageConverter()
         ic.ConvertTo(image, typeof<byte[]>):?>byte[]
@@ -25,7 +27,89 @@ module IMG =
          let ms:MemoryStream = new MemoryStream(bytes) 
          let image:Image = Image.FromStream(ms) 
          image
+
+//#endregion
+
+
+
+
+//(*
+// * Usage example:
+//*)
+//let convertImage =
+//    use newBitmap =
+//        fromFile @"C:/Temp/with-color.jpg"
+//        |> toRgbArray
+//        |> toGrayScale // or custom in memory manipulation function
+//        |> toBitmap
+//    use savedBitmap =
+//        toFile @"C:/Temp/gray-scale.png" newBitmap
+//    ()
  
+     // deserialize a bitmap file
+     let fromFile (file_path:string) = new Bitmap(file_path)
+
+     // serialize a bitmap as png
+     let toPngFile (file_path: string) (bmp: Bitmap) =
+        bmp.Save(file_path, Imaging.ImageFormat.Png) |> ignore
+        bmp
+
+     let toFile (file_path: string) (bmp: Bitmap) (format:Imaging.ImageFormat) =
+        bmp.Save(file_path, format) |> ignore
+        bmp
+
+     // load a bitmap in array of tuples (x,y,Color)
+     let toRgbArray (bmp : Bitmap) =
+        [| for y in 0..bmp.Height-1 do
+           for x in 0..bmp.Width-1 -> x,y,bmp.GetPixel(x,y) |]   
+
+     // builds a bitmap instance from an array of tuples
+     let toBitmap a =
+        let height = (a |> Array.Parallel.map (fun (x,_,_) -> x) |> Array.max) + 1
+        let width = (a |> Array.Parallel.map (fun (_,y,_) -> y) |> Array.max) + 1
+        let bmp = new Bitmap(width, height)
+        a |> Array.Parallel.iter (fun (x,y,c) -> bmp.SetPixel(x,y,c))
+        bmp
+
+     // converts an image to gray scale
+     let toGrayScale a =
+        a |> Array.Parallel.map (
+            fun (x,y,c : System.Drawing.Color) -> 
+                let gscale = int((float c.R * 0.3) + (float c.G * 0.59) + (float c.B * 0.11))
+                in  x,y,Color.FromArgb(int c.A, gscale, gscale, gscale))
+
+     // randomize or R or G or B each 1 to 3 pixels
+     let randomColorize a =
+        let rnd = new System.Random()
+        let next = fun() -> rnd.Next(255)
+        let rgb = function
+            | 0 -> fun(c : System.Drawing.Color) -> Color.FromArgb(int c.A, next(), (int c.G), (int c.B))
+            | 1 -> fun(c) -> Color.FromArgb(int c.A, (int c.R), next(), (int c.B))
+            | _ -> fun(c) -> Color.FromArgb(int c.A, (int c.R), (int c.G), next())
+        a |> Array.Parallel.mapi (
+            fun i (x,y,c : System.Drawing.Color) -> 
+                if i % rnd.Next(1,3) = 0 then x,y, rgb(rnd.Next(2))(c)
+                else x,y,c)
+
+
+//     let setDPIonPng(image:Image) = 
+//         use bitmap:Bitmap = new Bitmap(image) 
+//         use newBitmap:Bitmap  = new Bitmap(bitmap)
+//         newBitmap.SetResolution<- 300.,300.
+//            newBitmap.Save("file300.jpg", ImageFormat.Jpeg);
+ 
+     let setDPItoPng(image:Image) =
+       // Get a PropertyItem from image1. Because PropertyItem does not
+       // have public constructor, you first need to get existing PropertyItem
+          let propItem:PropertyItem = image.GetPropertyItem(20624) 
+          // Change the ID of the PropertyItem.
+          propItem.Id <- 20625
+          image.SetPropertyItem(propItem)
+
+
+
+
+
 module PDF = 
     open Spire.Pdf
     open System.Drawing
