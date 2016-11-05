@@ -31,7 +31,7 @@ module IMG =
 //#endregion
 
 
-
+//#region playing with images
 
 //(*
 // * Usage example:
@@ -92,11 +92,11 @@ module IMG =
                 else x,y,c)
 
 
-//     let setDPIonPng(image:Image) = 
-//         use bitmap:Bitmap = new Bitmap(image) 
-//         use newBitmap:Bitmap  = new Bitmap(bitmap)
-//         newBitmap.SetResolution<- 300.,300.
-//            newBitmap.Save("file300.jpg", ImageFormat.Jpeg);
+     let setDPIonPng2(image:Image) = 
+         use bitmap:Bitmap = new Bitmap(image) 
+         use newBitmap:Bitmap  = new Bitmap(bitmap)
+         newBitmap.SetResolution(300.f,300.f)
+         newBitmap:>Image
  
      let setDPItoPng(image:Image) =
        // Get a PropertyItem from image1. Because PropertyItem does not
@@ -105,10 +105,28 @@ module IMG =
           // Change the ID of the PropertyItem.
           propItem.Id <- 20625
           image.SetPropertyItem(propItem)
+          image
 
-
-
-
+     let setJpegResolution (file_path: string) (dpi:int byref) =
+        use jpg = new FileStream(file_path, FileMode.Open, FileAccess.ReadWrite, FileShare.None) 
+        use br = new BinaryReader(jpg)   
+        let mutable ok:bool = br.ReadUInt16() =  0xd8ffus       // Check header
+        ok <- ok && br.ReadUInt16() = 0xe0ffus
+        let z = br.ReadInt16()                       // Skip length
+        ok  <- ok && br.ReadUInt32() = 0x4649464au // Should be JFIF
+        ok  <- ok && br.ReadByte() =  0uy
+        ok  <- ok && br.ReadByte() =  0x01uy           // Major version should be 1
+        let y = br.ReadByte()                         // Skip minor version
+        let density:byte  = br.ReadByte()
+        ok  <- ok && (density = 1uy || density =  2uy)
+        if (not ok) then raise (System.Exception("Not a valid JPEG file"))
+        if (density = 2uy) then dpi <-  Convert.ToInt32(Math.Round((float dpi)/2.56))
+        let bigendian = BitConverter.GetBytes(dpi)
+        Array.Reverse(bigendian)
+        jpg.Write(bigendian, 0, 2)
+        jpg.Write(bigendian, 0, 2)
+        let bitmap:Bitmap = new Bitmap(jpg)   
+        bitmap:>Image 
 
 module PDF = 
     open Spire.Pdf
@@ -163,20 +181,23 @@ module PDF =
 
     let createFileName dir_output_images filename page id ext = sprintf @"%s%s_%s_%s%s" dir_output_images filename (page.ToString()) (id.ToString()) (ext.ToString())
 
-    let scriviImgsFromPdf pdf_file_path dir_output_images = 
+    let augmentDpi = fun (i:Image) -> i:Image
+
+    let scriviImgsFromPdf pdf_file_path dir_output_images augmentDpi = 
         let imgs = extractImages pdf_file_path
         for i:Image*string*ImagesFormat*int in imgs do
             let img,filename,ext,page = i
             let id = Guid.NewGuid()
-            img.Save(createFileName dir_output_images filename page id ext) |>ignore 
+            let auimg:Image = augmentDpi img
+            auimg.Save(createFileName dir_output_images filename page id ext) |>ignore 
             
-    let scriviImgsFromPdfsInDirectory dir_or_file_path dir_output_images = 
+    let scriviImgsFromPdfsInDirectory dir_or_file_path dir_output_images augmentDpi = 
         if File.Exists(dir_or_file_path) then
-           scriviImgsFromPdf dir_or_file_path dir_output_images
+           scriviImgsFromPdf dir_or_file_path dir_output_images augmentDpi
         elif Directory.Exists(dir_or_file_path) then  //presume is a directory
             let dir = new DirectoryInfo(dir_or_file_path)
             let files = dir.GetFiles("*.pdf", SearchOption.AllDirectories) //get only .pdf files
             let fullNames = files.Select(fun file -> file.FullName).ToArray();
             for pdf_file_path in fullNames do
-                scriviImgsFromPdf pdf_file_path dir_output_images
+                scriviImgsFromPdf pdf_file_path dir_output_images augmentDpi
 

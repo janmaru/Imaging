@@ -8,10 +8,10 @@ open System
 [<EntryPoint>]
 let main argv = 
     try
-        PDF.scriviImgsFromPdfsInDirectory @"C:\DEV\Imaging\test_imaging\" @"D:\temp\" 
+        PDF.scriviImgsFromPdfsInDirectory @"C:\DEV\Imaging\test_imaging\" @"D:\temp\" (fun (a: Image) -> a)
     with 
     | ex -> printfn "%s" (ex.Message.ToString())
  
     printfn "%A" argv
-    Console.Read |> ignore
+    Console.ReadKey(true)|> ignore
     0 // return an integer exit code
