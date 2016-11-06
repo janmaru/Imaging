@@ -91,7 +91,8 @@ module IMG =
                 if i % rnd.Next(1,3) = 0 then x,y, rgb(rnd.Next(2))(c)
                 else x,y,c)
 
-
+     let crop (image:Image) (size:Size) =
+          
      let setDPIonPng2(image:Image) = 
          use bitmap:Bitmap = new Bitmap(image) 
          use newBitmap:Bitmap  = new Bitmap(bitmap)
