@@ -7,8 +7,18 @@ open System
     
 [<EntryPoint>]
 let main argv = 
+
     try
-        PDF.scriviImgsFromPdfsInDirectory @"C:\DEV\Imaging\test_imaging\" @"D:\temp\" (fun (a: Image) -> a)
+        let ret = new Rectangle(new Point(50,0), new Size(100,100))
+        let extra (i:Image) = 
+          (IMG.extractRectangles i) |> List.map (fun x -> IMG.crop i x)
+
+        PDF.scriviImgsFromPdfsInDirectory 
+               @"C:\DEV\Imaging\test_imaging\"
+               @"D:\temp\"
+               (fun (i: Image) -> extra i)
+
+
     with 
     | ex -> printfn "%s" (ex.Message.ToString())
  

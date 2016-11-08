@@ -1,5 +1,11 @@
 NUGET
   remote: https://www.nuget.org/api/v2
+    AForge (2.2.5)
+    AForge.Imaging (2.2.5)
+      AForge (>= 2.2.5)
+      AForge.Math (>= 2.2.5)
+    AForge.Math (2.2.5)
+      AForge (>= 2.2.5)
     FAKE (4.41.8)
     ImageProcessor (2.4.5)
     Spire.PDF (3.8.22)

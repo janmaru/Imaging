@@ -1,2 +1,5 @@
 Spire.PDF
 ImageProcessor
+AForge
+AForge.Math
+AForge.Imaging

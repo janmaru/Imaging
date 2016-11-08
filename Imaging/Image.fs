@@ -17,6 +17,7 @@ module IMG =
      open System.IO
      open System.Runtime.Serialization.Formatters.Binary
      open System.Drawing.Imaging
+     open ImageProcessor
  
 //#region general methods
      let imageToByteArray(image:Image) =
@@ -30,6 +31,22 @@ module IMG =
 
 //#endregion
 
+//#region gemometry
+
+     let extractRectangles (image:Image) =  
+        let bc:AForge.Imaging.BlobCounter  = new AForge.Imaging.BlobCounter() 
+        bc.FilterBlobs <- true 
+        bc.MinWidth  <- 5;
+        bc.MinHeight <- 5;
+        // process binary image
+        let bmp= new Bitmap(image)
+        bc.ProcessImage(bmp) 
+        let blobs:AForge.Imaging.Blob[] = bc.GetObjects(bmp,false)
+        // process blobs
+        [for (blob:AForge.Imaging.Blob) in blobs do if blob.Area > 1000 then yield blob.Rectangle]
+//        myList.ToArray() 
+  
+//#endregion
 
 //#region playing with images
 
@@ -91,8 +108,17 @@ module IMG =
                 if i % rnd.Next(1,3) = 0 then x,y, rgb(rnd.Next(2))(c)
                 else x,y,c)
 
-     let crop (image:Image) (size:Size) =
-          
+     let crop (image:Image) (rectangle:Rectangle) =
+          let photoBytes = imageToByteArray image
+          use inStream = new MemoryStream(photoBytes)
+          use outStream = new MemoryStream()
+          use imageFactory = new ImageFactory(true) 
+          let igf = imageFactory.Load(inStream)
+                                .Crop(rectangle)
+                                .Save(outStream)
+          Image.FromStream(outStream) 
+
+
      let setDPIonPng2(image:Image) = 
          use bitmap:Bitmap = new Bitmap(image) 
          use newBitmap:Bitmap  = new Bitmap(bitmap)
@@ -201,4 +227,8 @@ module PDF =
             let fullNames = files.Select(fun file -> file.FullName).ToArray();
             for pdf_file_path in fullNames do
                 scriviImgsFromPdf pdf_file_path dir_output_images augmentDpi
+
+
+
+
 

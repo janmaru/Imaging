@@ -1,4 +1,7 @@
 source https://www.nuget.org/api/v2
+nuget AForge
+nuget AForge.Imaging
+nuget AForge.Math
 nuget FAKE
 nuget ImageProcessor
 nuget Spire.PDF
