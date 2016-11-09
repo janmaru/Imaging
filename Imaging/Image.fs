@@ -13,13 +13,17 @@ type ImagesFormat =  Bmp | Jpeg | Gif | Tiff | Png |  Unknown
                          | _ -> ".unk"
 
 module IMG = 
-     open System.Drawing
      open System.IO
      open System.Runtime.Serialization.Formatters.Binary
+     open System.Drawing
      open System.Drawing.Imaging
      open ImageProcessor
+     open System.Text
+     open System.Linq
+ 
  
 //#region general methods
+
      let imageToByteArray(image:Image) =
         let ic = new ImageConverter()
         ic.ConvertTo(image, typeof<byte[]>):?>byte[]
@@ -29,23 +33,61 @@ module IMG =
          let image:Image = Image.FromStream(ms) 
          image
 
+     let extractExt(image:Image):ImagesFormat = 
+            let bytes = imageToByteArray image
+            // see http://www.mikekunz.com/image_file_header.html  
+            let bmp  = Encoding.ASCII.GetBytes("BM")      // BMP
+            let gif  = Encoding.ASCII.GetBytes("GIF")    // GIF
+            let png  = [|137uy; 80uy; 78uy; 71uy |]    // PNG
+            let tiff = [|73uy; 73uy; 42uy|]         // TIFF
+            let tiff2= [|77uy; 77uy; 42uy|]        // TIFF
+            let jpeg = [|255uy; 216uy; 255uy; 224uy|] // jpeg
+            let jpeg2= [|255uy; 216uy; 255uy; 225uy|] // jpeg canon
+
+            if bmp.SequenceEqual(bytes.Take(bmp.Length)) then
+                ImagesFormat.Bmp
+            elif gif.SequenceEqual(bytes.Take(gif.Length)) then
+                ImagesFormat.Gif 
+            elif png.SequenceEqual(bytes.Take(png.Length)) then
+                ImagesFormat.Png 
+            elif tiff.SequenceEqual(bytes.Take(tiff.Length)) then
+                ImagesFormat.Tiff 
+            elif  tiff2.SequenceEqual(bytes.Take(tiff2.Length)) then
+                ImagesFormat.Tiff 
+            elif  jpeg.SequenceEqual(bytes.Take(jpeg.Length)) then
+                ImagesFormat.Jpeg 
+            elif  jpeg2.SequenceEqual(bytes.Take(jpeg2.Length)) then
+                ImagesFormat.Jpeg 
+            else
+                ImagesFormat.Unknown 
+
 //#endregion
 
 //#region gemometry
 
-     let extractRectangles (image:Image) =  
+     let extractRectangles (image:Image) (min_width:int) (min_height:int) (max_width:int) (max_height:int)  =  
         let bc:AForge.Imaging.BlobCounter  = new AForge.Imaging.BlobCounter() 
         bc.FilterBlobs <- true 
-        bc.MinWidth  <- 5;
-        bc.MinHeight <- 5;
+        bc.MinWidth  <- min_width;
+        bc.MinHeight <- min_height;
+        bc.MaxWidth<- max_width;
+        bc.MaxHeight<- max_height;
         // process binary image
         let bmp= new Bitmap(image)
         bc.ProcessImage(bmp) 
         let blobs:AForge.Imaging.Blob[] = bc.GetObjects(bmp,false)
         // process blobs
-        [for (blob:AForge.Imaging.Blob) in blobs do if blob.Area > 1000 then yield blob.Rectangle]
-//        myList.ToArray() 
-  
+        [for (blob:AForge.Imaging.Blob) in blobs do if (blob.Area > 1000) then yield blob.Rectangle]
+        // myList.ToArray() 
+
+//     let extractRectangles2 (image:Image) =  
+//        // create an instance of blob counter algorithm
+//        let bc: AForge.Imaging.BlobCounter = new AForge.Imaging.BlobCounter()
+//        // process binary image
+//        bc.ProcessImage (new Bitmap(image))
+//        let rects:Rectangle[]  = bc.GetObjectsRectangles()
+//        rects
+         
 //#endregion
 
 //#region playing with images
@@ -155,42 +197,35 @@ module IMG =
         let bitmap:Bitmap = new Bitmap(jpg)   
         bitmap:>Image 
 
+//#region io methods
+     let scriviGeometryImgsFromImage img_file_path dir_output_images (min_width:int) (min_height:int) (max_width:int) (max_height:int)  = 
+        let img = Image.FromFile img_file_path
+        let gimgs = extractRectangles img min_width min_height max_width max_height
+
+        let mutable count = 0
+        for r:Rectangle in gimgs do
+            count<-count+1
+            let cimg = crop img r
+            cimg.Save(dir_output_images + "_" + count.ToString() + (extractExt img).ToString() ) |>ignore 
+
+//     let scriviGeometryImgsFromImage2 img_file_path dir_output_images = 
+//        let img = Image.FromFile img_file_path
+//        let gimgs = extractRectangles2 img
+
+        let mutable count = 0
+        for r:Rectangle in gimgs do
+            count<-count+1
+            let cimg = crop img r
+            cimg.Save(dir_output_images + "_" + count.ToString() + (extractExt img).ToString() ) |>ignore 
+//#endregion
+
 module PDF = 
     open Spire.Pdf
     open System.Drawing
     open System.Drawing.Imaging
-    open System.Text
     open System.Linq
     open System.IO
 
-    let extractExt(image:Image):ImagesFormat = 
-        let bytes = IMG.imageToByteArray image
-        // see http://www.mikekunz.com/image_file_header.html  
-        let bmp  = Encoding.ASCII.GetBytes("BM")      // BMP
-        let gif  = Encoding.ASCII.GetBytes("GIF")    // GIF
-        let png  = [|137uy; 80uy; 78uy; 71uy |]    // PNG
-        let tiff = [|73uy; 73uy; 42uy|]         // TIFF
-        let tiff2= [|77uy; 77uy; 42uy|]        // TIFF
-        let jpeg = [|255uy; 216uy; 255uy; 224uy|] // jpeg
-        let jpeg2= [|255uy; 216uy; 255uy; 225uy|] // jpeg canon
-
-        if bmp.SequenceEqual(bytes.Take(bmp.Length)) then
-            ImagesFormat.Bmp
-        elif gif.SequenceEqual(bytes.Take(gif.Length)) then
-            ImagesFormat.Gif 
-        elif png.SequenceEqual(bytes.Take(png.Length)) then
-            ImagesFormat.Png 
-        elif tiff.SequenceEqual(bytes.Take(tiff.Length)) then
-            ImagesFormat.Tiff 
-        elif  tiff2.SequenceEqual(bytes.Take(tiff2.Length)) then
-            ImagesFormat.Tiff 
-        elif  jpeg.SequenceEqual(bytes.Take(jpeg.Length)) then
-            ImagesFormat.Jpeg 
-        elif  jpeg2.SequenceEqual(bytes.Take(jpeg2.Length)) then
-            ImagesFormat.Jpeg 
-        else
-            ImagesFormat.Unknown 
-     
     let getNomeFile(pdf_file_path:string) =
         Path.GetFileNameWithoutExtension pdf_file_path
  
@@ -204,7 +239,7 @@ module PDF =
                 let imgs = page.ExtractImages()
                 count<-count+1
                 for img:Image in imgs do
-                yield img, file_name, extractExt img, count}
+                yield img, file_name, IMG.extractExt img, count}
 
     let createFileName dir_output_images filename page id ext = sprintf @"%s%s_%s_%s%s" dir_output_images filename (page.ToString()) (id.ToString()) (ext.ToString())
 
